@@ -1,5 +1,6 @@
 package tech.userland.userland
 
+import android.arch.persistence.room.RoomDatabase
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -12,23 +13,27 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_session_list.*
+import tech.userland.userland.database.AppDatabase
+import tech.userland.userland.database.entity.SessionEntity
 
 class SessionListActivity : AppCompatActivity() {
 
-    lateinit var sharedPreferences: SharedPreferences
-    lateinit var sessionList: ArrayList<String>
+    lateinit var sessionList: List<SessionEntity>
+    lateinit var database: AppDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_session_list)
         setSupportActionBar(toolbar)
 
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
-        sessionList = ArrayList(sharedPreferences.getString("sessions", "").split(", "))
-        Toast.makeText(this, "Session list created with " + sessionList.toString(), Toast.LENGTH_LONG).show()
+        database = AppDatabase.getInstance(this)
+        val sessionDao = database.sessionDao()
+        sessionList = sessionDao.getAllSessions()
+        val sessionNames  = ArrayList(sessionList.map { it.name })
+        Toast.makeText(this, "Session list created with " + sessionNames.toString(), Toast.LENGTH_LONG).show()
 
         list_sessions.emptyView = findViewById(R.id.empty)
-        list_sessions.adapter = ArrayAdapter(this, R.layout.list_item, sessionList)
+        list_sessions.adapter = ArrayAdapter(this, R.layout.list_item, sessionNames)
         registerForContextMenu(list_sessions)
 
         fab.setOnClickListener { navigateToSessionCreate() }
@@ -94,5 +99,15 @@ class SessionListActivity : AppCompatActivity() {
         val intent = Intent(this, SessionCreateActivity::class.java)
         startActivity(intent)
         return true
+    }
+
+    fun registerAllSessionListener() {
+
+        .database?.personDao()?.getAllPeople()
+                ?.subscribeOn(Schedulers.io())
+                ?.observeOn(AndroidSchedulers.mainThread())
+                ?.subscribe { listOfPeople ->
+                    view.personTableUpdated(listOfPeople)
+                }
     }
 }

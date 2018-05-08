@@ -6,7 +6,7 @@ import android.arch.persistence.room.PrimaryKey
 
 @Entity(tableName = "sessions",
         foreignKeys = arrayOf(ForeignKey(
-        entity = SessionEntity::class,
+        entity = FilesystemEntity::class,
         parentColumns = arrayOf("filesystemId"),
         childColumns = arrayOf("sessionId"),
         onDelete = ForeignKey.CASCADE)))
